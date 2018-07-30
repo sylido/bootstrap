@@ -1501,7 +1501,7 @@ if (typeof jQuery === 'undefined') {
 
       var complete = function () {
         var prevHoverState = that.hoverState
-        that.$element.trigger('shown.bs.' + that.type)
+        null != that.$element && that.$element.trigger('shown.bs.' + that.type)
         that.hoverState = null
 
         if (prevHoverState == 'out') that.leave(that)
@@ -1745,7 +1745,7 @@ if (typeof jQuery === 'undefined') {
     var that = this
     clearTimeout(this.timeout)
     this.hide(function () {
-      that.$element.off('.' + that.type).removeData('bs.' + that.type)
+      null != that.$element && that.$element.off('.' + that.type).removeData('bs.' + that.type)
       if (that.$tip) {
         that.$tip.detach()
       }
