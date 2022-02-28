@@ -4,8 +4,8 @@
 /* globals Set */
 /*!
  * Script to update version number references in the project.
- * Copyright 2015 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * Copyright 2015-2019 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/v3-dev/LICENSE)
  */
 var fs = require('fs');
 var path = require('path');

@@ -1,8 +1,8 @@
 /*!
  * Bootstrap's Gruntfile
- * http://getbootstrap.com
- * Copyright 2013-2016 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * https://getbootstrap.com/
+ * Copyright 2013-2019 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/v3-dev/LICENSE)
  */
 
 module.exports = function (grunt) {
@@ -104,7 +104,7 @@ module.exports = function (grunt) {
         banner: '<%= banner %>\n<%= jqueryCheck %>\n<%= jqueryVersionCheck %>',
         stripBanners: false
       },
-      bootstrap: {
+      core: {
         src: [
           'js/transition.js',
           'js/alert.js',
@@ -125,92 +125,90 @@ module.exports = function (grunt) {
 
     uglify: {
       options: {
-        compress: {
-          warnings: false
-        },
+        compress: true,
         mangle: true,
-        preserveComments: /^!|@preserve|@license|@cc_on/i
+        ie8: true,
+        output: {
+          comments: /^!|@preserve|@license|@cc_on/i
+        }
       },
       core: {
-        src: '<%= concat.bootstrap.dest %>',
+        src: '<%= concat.core.dest %>',
         dest: 'dist/js/<%= pkg.name %>.min.js'
       },
       customize: {
         src: configBridge.paths.customizerJs,
         dest: 'docs/assets/js/customize.min.js'
       },
-      docsJs: {
+      docs: {
         src: configBridge.paths.docsJs,
         dest: 'docs/assets/js/docs.min.js'
       }
     },
 
-    qunit: {
-      options: {
-        inject: 'js/tests/unit/phantom.js'
-      },
-      files: 'js/tests/index.html'
-    },
-
     less: {
-      compileCore: {
+      options: {
+        ieCompat: true,
+        strictMath: true,
+        sourceMap: true,
+        outputSourceFiles: true
+      },
+      core: {
         options: {
-          strictMath: true,
-          sourceMap: true,
-          outputSourceFiles: true,
           sourceMapURL: '<%= pkg.name %>.css.map',
           sourceMapFilename: 'dist/css/<%= pkg.name %>.css.map'
         },
         src: 'less/bootstrap.less',
         dest: 'dist/css/<%= pkg.name %>.css'
       },
-      compileTheme: {
+      theme: {
         options: {
-          strictMath: true,
-          sourceMap: true,
-          outputSourceFiles: true,
           sourceMapURL: '<%= pkg.name %>-theme.css.map',
           sourceMapFilename: 'dist/css/<%= pkg.name %>-theme.css.map'
         },
         src: 'less/theme.less',
         dest: 'dist/css/<%= pkg.name %>-theme.css'
       },
-      compileDocs: {
+      docs: {
         options: {
-          strictMath: true,
-          sourceMap: true,
-          outputSourceFiles: true,
           sourceMapURL: 'docs.css.map',
           sourceMapFilename: 'docs/assets/css/docs.css.map'
         },
         src: 'docs/assets/less/docs.less',
         dest: 'docs/assets/css/docs.css'
+      },
+      docsIe: {
+        options: {
+          sourceMap: false
+        },
+        src: 'docs/assets/less/ie10-viewport-bug-workaround.less',
+        dest: 'docs/assets/css/ie10-viewport-bug-workaround.css'
       }
     },
 
-    autoprefixer: {
+    postcss: {
       options: {
-        browsers: configBridge.config.autoprefixerBrowsers
+        map: {
+          inline: false,
+          sourcesContent: true
+        },
+        processors: [
+          require('autoprefixer')(configBridge.config.autoprefixer)
+        ]
       },
       core: {
-        options: {
-          map: true
-        },
         src: 'dist/css/<%= pkg.name %>.css'
       },
       theme: {
-        options: {
-          map: true
-        },
         src: 'dist/css/<%= pkg.name %>-theme.css'
       },
       docs: {
-        options: {
-          map: true
-        },
-        src: 'docs/assets/css/src/docs.css'
+        src: 'docs/assets/css/docs.css'
       },
       examples: {
+        options: {
+          map: false
+        },
         expand: true,
         cwd: 'docs/examples/',
         src: ['**/*.css'],
@@ -221,12 +219,7 @@ module.exports = function (grunt) {
     stylelint: {
       options: {
         configFile: 'grunt/.stylelintrc',
-        formatter: 'string',
-        ignoreDisables: false,
-        failOnError: true,
-        outputFile: '',
-        reportNeedlessDisables: false,
-        syntax: ''
+        reportNeedlessDisables: false
       },
       dist: [
         'less/**/*.less'
@@ -241,23 +234,24 @@ module.exports = function (grunt) {
 
     cssmin: {
       options: {
-        // TODO: disable `zeroUnits` optimization once clean-css 3.2 is released
-        //    and then simplify the fix for https://github.com/twbs/bootstrap/issues/14837 accordingly
         compatibility: 'ie8',
-        keepSpecialComments: '*',
         sourceMap: true,
         sourceMapInlineSources: true,
-        advanced: false
+        level: {
+          1: {
+            specialComments: 'all'
+          }
+        }
       },
-      minifyCore: {
+      core: {
         src: 'dist/css/<%= pkg.name %>.css',
         dest: 'dist/css/<%= pkg.name %>.min.css'
       },
-      minifyTheme: {
+      theme: {
         src: 'dist/css/<%= pkg.name %>-theme.css',
         dest: 'dist/css/<%= pkg.name %>-theme.min.css'
       },
-      minifyDocs: {
+      docs: {
         src: 'docs/assets/css/docs.css',
         dest: 'docs/assets/css/docs.min.css'
       }
@@ -295,45 +289,15 @@ module.exports = function (grunt) {
         incremental: false
       },
       docs: {},
+      netlify: {
+        options: {
+          raw: 'github: true\nbaseurl: ""\nnetlify: true'
+        }
+      },
       github: {
         options: {
           raw: 'github: true'
         }
-      }
-    },
-
-    htmlmin: {
-      dist: {
-        options: {
-          collapseBooleanAttributes: true,
-          collapseWhitespace: true,
-          conservativeCollapse: true,
-          decodeEntities: false,
-          minifyCSS: {
-            compatibility: 'ie8',
-            keepSpecialComments: 0
-          },
-          minifyJS: true,
-          minifyURLs: false,
-          processConditionalComments: true,
-          removeAttributeQuotes: true,
-          removeComments: true,
-          removeOptionalAttributes: true,
-          removeOptionalTags: true,
-          removeRedundantAttributes: true,
-          removeScriptTypeAttributes: true,
-          removeStyleLinkTypeAttributes: true,
-          removeTagWhitespace: false,
-          sortAttributes: true,
-          sortClassName: true
-        },
-        expand: true,
-        cwd: '_gh_pages',
-        dest: '_gh_pages',
-        src: [
-          '**/*.html',
-          '!examples/**/*.html'
-        ]
       }
     },
 
@@ -355,22 +319,21 @@ module.exports = function (grunt) {
     htmllint: {
       options: {
         ignore: [
-          'Attribute "autocomplete" not allowed on element "button" at this point.',
-          'Attribute "autocomplete" is only allowed when the input type is "color", "date", "datetime", "datetime-local", "email", "hidden", "month", "number", "password", "range", "search", "tel", "text", "time", "url", or "week".',
           'Element "img" is missing required attribute "src".'
-        ]
+        ],
+        noLangDetect: true
       },
-      src: '_gh_pages/**/*.html'
+      src: ['_gh_pages/**/*.html', 'js/tests/**/*.html']
     },
 
     watch: {
       src: {
         files: '<%= jshint.core.src %>',
-        tasks: ['jshint:core', 'qunit', 'concat']
+        tasks: ['jshint:core', 'exec:karma', 'concat']
       },
       test: {
         files: '<%= jshint.test.src %>',
-        tasks: ['jshint:test', 'qunit']
+        tasks: ['jshint:test', 'exec:karma']
       },
       less: {
         files: 'less/**/*.less',
@@ -382,44 +345,14 @@ module.exports = function (grunt) {
       }
     },
 
-    'saucelabs-qunit': {
-      all: {
-        options: {
-          build: process.env.TRAVIS_JOB_ID,
-          throttled: 10,
-          maxRetries: 3,
-          maxPollRetries: 4,
-          urls: ['http://127.0.0.1:3000/js/tests/index.html?hidepassed'],
-          browsers: grunt.file.readYAML('grunt/sauce_browsers.yml')
-        }
-      }
-    },
-
     exec: {
-      npmUpdate: {
-        command: 'npm update'
-      }
-    },
-
-    compress: {
-      main: {
-        options: {
-          archive: 'bootstrap-<%= pkg.version %>-dist.zip',
-          mode: 'zip',
-          level: 9,
-          pretty: true
-        },
-        files: [
-          {
-            expand: true,
-            cwd: 'dist/',
-            src: ['**'],
-            dest: 'bootstrap-<%= pkg.version %>-dist'
-          }
-        ]
+      browserstack: {
+        command: 'cross-env BROWSER=true karma start grunt/karma.conf.js'
+      },
+      karma: {
+        command: 'karma start grunt/karma.conf.js'
       }
     }
-
   });
 
 
@@ -434,15 +367,13 @@ module.exports = function (grunt) {
     return !process.env.TWBS_TEST || process.env.TWBS_TEST === subset;
   };
   var isUndefOrNonZero = function (val) {
-    return val === undefined || val !== '0';
+    return typeof val === 'undefined' || val !== '0';
   };
 
   // Test task.
   var testSubtasks = [];
   // Skip core tests if running a different subset of the test suite
-  if (runSubset('core') &&
-      // Skip core tests if this is a Savage build
-      process.env.TRAVIS_REPO_SLUG !== 'twbs-savage/bootstrap') {
+  if (runSubset('core')) {
     testSubtasks = testSubtasks.concat(['dist-css', 'dist-js', 'stylelint:dist', 'test-js', 'docs']);
   }
   // Skip HTML validation if running a different subset of the test suite
@@ -451,24 +382,23 @@ module.exports = function (grunt) {
       isUndefOrNonZero(process.env.TWBS_DO_VALIDATOR)) {
     testSubtasks.push('validate-html');
   }
-  // Only run Sauce Labs tests if there's a Sauce access key
-  if (typeof process.env.SAUCE_ACCESS_KEY !== 'undefined' &&
-      // Skip Sauce if running a different subset of the test suite
-      runSubset('sauce-js-unit') &&
-      // Skip Sauce on Travis when [skip sauce] is in the commit message
-      isUndefOrNonZero(process.env.TWBS_DO_SAUCE)) {
-    testSubtasks.push('connect');
-    testSubtasks.push('saucelabs-qunit');
+  // Only run BrowserStack tests if there's a BrowserStack access key
+  if (typeof process.env.BROWSER_STACK_USERNAME !== 'undefined' &&
+      // Skip BrowserStack if running a different subset of the test suite
+      runSubset('browserstack') &&
+      // Skip BrowserStack on Travis when [skip browserstack] is in the commit message
+      isUndefOrNonZero(process.env.TWBS_DO_BROWSERSTACK)) {
+    testSubtasks.push('exec:browserstack');
   }
+
   grunt.registerTask('test', testSubtasks);
-  grunt.registerTask('test-js', ['jshint:core', 'jshint:test', 'jshint:grunt', 'jscs:core', 'jscs:test', 'jscs:grunt', 'qunit']);
+  grunt.registerTask('test-js', ['jshint:core', 'jshint:test', 'jshint:grunt', 'jscs:core', 'jscs:test', 'jscs:grunt', 'exec:karma']);
 
   // JS distribution task.
   grunt.registerTask('dist-js', ['concat', 'uglify:core', 'commonjs']);
 
   // CSS distribution task.
-  grunt.registerTask('less-compile', ['less:compileCore', 'less:compileTheme', 'less:compileDocs']);
-  grunt.registerTask('dist-css', ['less-compile', 'autoprefixer:core', 'autoprefixer:theme', 'cssmin:minifyCore', 'cssmin:minifyTheme']);
+  grunt.registerTask('dist-css', ['less:core', 'less:theme', 'postcss:core', 'postcss:theme', 'cssmin:core', 'cssmin:theme']);
 
   // Full distribution task.
   grunt.registerTask('dist', ['clean:dist', 'dist-css', 'copy:fonts', 'dist-js']);
@@ -476,7 +406,9 @@ module.exports = function (grunt) {
   // Default task.
   grunt.registerTask('default', ['clean:dist', 'copy:fonts', 'test']);
 
-  grunt.registerTask('build-glyphicons-data', function () { generateGlyphiconsData.call(this, grunt); });
+  grunt.registerTask('build-glyphicons-data', function () {
+    generateGlyphiconsData.call(this, grunt);
+  });
 
   // task for building customizer
   grunt.registerTask('build-customizer', ['build-customizer-html', 'build-raw-files']);
@@ -487,18 +419,17 @@ module.exports = function (grunt) {
   });
 
   grunt.registerTask('commonjs', 'Generate CommonJS entrypoint module in dist dir.', function () {
-    var srcFiles = grunt.config.get('concat.bootstrap.src');
+    var srcFiles = grunt.config.get('concat.core.src');
     var destFilepath = 'dist/js/npm.js';
     generateCommonJSModule(grunt, srcFiles, destFilepath);
   });
 
   // Docs task.
-  grunt.registerTask('docs-css', ['autoprefixer:docs', 'autoprefixer:examples', 'cssmin:minifyDocs']);
+  grunt.registerTask('docs-css', ['less:docs', 'less:docsIe', 'postcss:docs', 'postcss:examples', 'cssmin:docs']);
   grunt.registerTask('lint-docs-css', ['stylelint:docs', 'stylelint:examples']);
-  grunt.registerTask('docs-js', ['uglify:docsJs', 'uglify:customize']);
+  grunt.registerTask('docs-js', ['uglify:docs', 'uglify:customize']);
   grunt.registerTask('lint-docs-js', ['jshint:assets', 'jscs:assets']);
   grunt.registerTask('docs', ['docs-css', 'lint-docs-css', 'docs-js', 'lint-docs-js', 'clean:docs', 'copy:docs', 'build-glyphicons-data', 'build-customizer']);
-  grunt.registerTask('docs-github', ['jekyll:github', 'htmlmin']);
 
-  grunt.registerTask('prep-release', ['dist', 'docs', 'docs-github', 'compress']);
+  grunt.registerTask('prep-release', ['dist', 'docs', 'jekyll:github']);
 };
