@@ -54,7 +54,7 @@
     "grunt-html": "^11.0.0",
     "grunt-jekyll": "^1.0.0",
     "grunt-jscs": "^3.0.1",
-    "grunt-postcss": "c-lodder/grunt-postcss#6f9408dc69e415b8498d4a9693ae81565818dba4",
+    "grunt-postcss": "c-lodder/grunt-postcss#c0946b943be9c823856004b7aec7097c2265f0fa",
     "grunt-stylelint": "^0.10.1",
     "ip": "^1.1.5",
     "karma": "^3.1.3",
