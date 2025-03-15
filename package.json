@@ -1,7 +1,7 @@
 {
-  "name": "bootstrap",
+  "name": "sylido-bootstrap",
   "description": "The most popular front-end framework for developing responsive, mobile first projects on the web.",
-  "version": "3.4.1",
+  "version": "1.0.0",
   "keywords": [
     "css",
     "less",
@@ -11,8 +11,8 @@
     "framework",
     "web"
   ],
-  "homepage": "https://getbootstrap.com/",
-  "author": "Twitter, Inc.",
+  "homepage": "",
+  "author": "",
   "scripts": {
     "netlify": "grunt dist docs-css docs-js copy:docs build-glyphicons-data build-customizer && npm run sri && grunt jekyll:netlify",
     "sri": "node grunt/generate-sri.js",
